@@ -27,7 +27,7 @@ app.use("/api/assignments", require("./routes/assignmentRoutes"));
 // Health Check Endpoint
 app.get("/", (req, res) => {
   res.json({
-    status: "GlobalAssign Backend Server API Running",
+    status: "GlobalAssign Backend Server API Running on Vercel Serverless",
     auth: "JWT Enabled (Teacher & Student Models)",
     dbConnection: "MongoDB Atlas",
     version: "1.0.0"
@@ -36,6 +36,11 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`[GlobalAssign Backend Running] Port: ${PORT}`);
-});
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => {
+    console.log(`[GlobalAssign Backend Running] Port: ${PORT}`);
+  });
+}
+
+// Export for Vercel Serverless Execution
+module.exports = app;

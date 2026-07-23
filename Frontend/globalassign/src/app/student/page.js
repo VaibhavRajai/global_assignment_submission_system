@@ -18,6 +18,8 @@ import {
   Check
 } from "lucide-react";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://globalassign-backend.vercel.app";
+
 export default function StudentHomePage() {
   const router = useRouter();
   const [studentUser, setStudentUser] = useState({ name: "Alex Chen", email: "alex.chen@university.edu" });
@@ -33,7 +35,7 @@ export default function StudentHomePage() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  // Student Submission History with Remarks (Unchecked, Checked, Pass, Fail)
+  // Student Submission History with Remarks
   const [history, setHistory] = useState([
     {
       id: "sub_101",
@@ -54,16 +56,6 @@ export default function StudentHomePage() {
       fileHash: "0x3B7C91D4",
       uploadedAt: "Jul 20, 2026, 11:15",
       remark: "Checked"
-    },
-    {
-      id: "sub_103",
-      title: "Neural Network Calculus Derivations",
-      code: "312908",
-      fileName: "Neural_Net_Proof.ipynb",
-      fileUrl: "https://globalassign-submissions-bucket.s3.us-east-1.amazonaws.com/submissions/1721400000_Neural_Net_Proof.ipynb",
-      fileHash: "0xE1D4A8C9",
-      uploadedAt: "Jul 15, 2026, 18:40",
-      remark: "Unchecked"
     }
   ]);
 
@@ -95,7 +87,7 @@ export default function StudentHomePage() {
     setJoinError("");
 
     try {
-      const res = await fetch(`http://localhost:5000/api/assignments/code/${inputCode.trim()}`);
+      const res = await fetch(`${API_BASE_URL}/api/assignments/code/${inputCode.trim()}`);
       const json = await res.json();
 
       if (json.success && json.data) {
@@ -117,7 +109,7 @@ export default function StudentHomePage() {
     }
   };
 
-  // 2. Upload Assignment & Append to History with "Unchecked" Remark
+  // 2. Upload Assignment & Append to History
   const handleUploadFile = async (fileName) => {
     if (!activeAssignment) return;
 
@@ -134,7 +126,7 @@ export default function StudentHomePage() {
     let createdSubmission = null;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/assignments/${activeAssignment.id}/upload`, {
+      const res = await fetch(`${API_BASE_URL}/api/assignments/${activeAssignment.id}/upload`, {
         method: "POST",
         body: formData
       });
@@ -179,7 +171,6 @@ export default function StudentHomePage() {
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black flex flex-col font-sans relative">
-      {/* Background Radial Glow & Grid */}
       <div className="absolute inset-0 bg-grid-pattern opacity-30 pointer-events-none" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-white/5 blur-[140px] rounded-full pointer-events-none" />
 
@@ -220,9 +211,8 @@ export default function StudentHomePage() {
 
       <main className="relative flex-1 py-10 px-6 mx-auto max-w-6xl w-full space-y-10">
         
-        {/* ================= TOP SECTION: + UPLOAD ASSIGNMENT ================= */}
+        {/* TOP SECTION: + UPLOAD ASSIGNMENT */}
         <div className="rounded-3xl border border-zinc-800 bg-zinc-950/80 p-6 sm:p-8 space-y-6 shadow-2xl glass-panel">
-          
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-800/80 pb-4">
             <div>
               <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest">[ STUDENT ACTIONS ]</span>
@@ -235,7 +225,6 @@ export default function StudentHomePage() {
             </span>
           </div>
 
-          {/* Join via 6-Digit Code */}
           <form onSubmit={handleJoinByCode} className="space-y-3">
             <label className="block text-xs font-mono text-zinc-400 uppercase tracking-wider">ENTER 6-DIGIT CLASS CODE TO JOIN ASSIGNMENT</label>
             <div className="flex flex-col sm:flex-row gap-3">
@@ -264,7 +253,6 @@ export default function StudentHomePage() {
             )}
           </form>
 
-          {/* Upload File Zone */}
           {activeAssignment && (
             <div className="pt-4 border-t border-zinc-800/80 space-y-4 animate-in fade-in">
               <div className="p-5 rounded-2xl bg-black border border-zinc-800 space-y-1">
@@ -306,7 +294,7 @@ export default function StudentHomePage() {
 
         </div>
 
-        {/* ================= BELOW SECTION: SUBMISSION HISTORY & REMARKS ================= */}
+        {/* BELOW SECTION: SUBMISSION HISTORY & REMARKS */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
@@ -320,7 +308,6 @@ export default function StudentHomePage() {
             </div>
           </div>
 
-          {/* Desktop Table View */}
           <div className="hidden md:block overflow-x-auto rounded-2xl border border-zinc-800 bg-zinc-950 shadow-xl">
             <table className="w-full text-left text-sm text-zinc-300">
               <thead className="bg-zinc-900/90 text-xs font-mono uppercase text-zinc-400 border-b border-zinc-800">
@@ -366,7 +353,6 @@ export default function StudentHomePage() {
                         {item.fileHash}
                       </td>
 
-                      {/* REMARKS: Unchecked, Checked, Pass, Fail */}
                       <td className="px-6 py-4 text-right">
                         <span className={`inline-flex items-center gap-1.5 text-xs font-mono px-3 py-1 rounded-full border font-bold ${
                           item.remark === "Pass"
@@ -375,7 +361,7 @@ export default function StudentHomePage() {
                             ? "bg-zinc-900 text-white border-zinc-700"
                             : item.remark === "Checked"
                             ? "bg-zinc-800 text-zinc-200 border-zinc-700"
-                            : "bg-zinc-900 text-zinc-400 border-zinc-800" // Unchecked
+                            : "bg-zinc-900 text-zinc-400 border-zinc-800"
                         }`}>
                           {item.remark === "Pass" && <Check className="h-3.5 w-3.5 text-black" />}
                           {item.remark === "Fail" && <XCircle className="h-3.5 w-3.5 text-white" />}
@@ -397,7 +383,6 @@ export default function StudentHomePage() {
             </table>
           </div>
 
-          {/* Mobile Responsive Cards View */}
           <div className="md:hidden space-y-3">
             {history.map((item) => (
               <div key={item.id} className="p-5 rounded-2xl border border-zinc-800 bg-zinc-950 space-y-3">
@@ -434,7 +419,7 @@ export default function StudentHomePage() {
       </main>
 
       <footer className="border-t border-zinc-800/80 py-6 text-center text-xs font-mono text-zinc-500">
-        GlobalAssign Student Portal • AWS S3 Stored URLs & Remarks
+        GlobalAssign Student Portal • Live Vercel Backend Connected
       </footer>
     </div>
   );

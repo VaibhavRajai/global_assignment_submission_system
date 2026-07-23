@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { X, PlusCircle, CheckCircle2, Copy, Check } from "lucide-react";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://globalassign-backend.vercel.app";
+
 export default function CreateAssignmentForm({ isOpen, onClose, onAddAssignment }) {
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -28,7 +30,7 @@ export default function CreateAssignmentForm({ isOpen, onClose, onAddAssignment 
     };
 
     try {
-      const res = await fetch("http://localhost:5000/api/assignments", {
+      const res = await fetch(`${API_BASE_URL}/api/assignments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -43,7 +45,6 @@ export default function CreateAssignmentForm({ isOpen, onClose, onAddAssignment 
         setCreatedCode(json.data.code);
         onAddAssignment(json.data);
       } else {
-        // Fallback code generation if backend offline
         const fallbackCode = Math.floor(100000 + Math.random() * 900000).toString();
         setCreatedCode(fallbackCode);
         onAddAssignment({
@@ -58,7 +59,6 @@ export default function CreateAssignmentForm({ isOpen, onClose, onAddAssignment 
         });
       }
     } catch (err) {
-      // Offline fallback code generation
       const fallbackCode = Math.floor(100000 + Math.random() * 900000).toString();
       setCreatedCode(fallbackCode);
       onAddAssignment({
@@ -96,7 +96,6 @@ export default function CreateAssignmentForm({ isOpen, onClose, onAddAssignment 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-in fade-in">
       <div className="w-full max-w-xl rounded-2xl border border-zinc-800 bg-zinc-950 text-white shadow-2xl overflow-hidden">
         
-        {/* Header */}
         <div className="flex items-center justify-between border-b border-zinc-800 p-6 bg-black">
           <div>
             <span className="text-xs font-mono text-zinc-400 uppercase">[ TEACHER SUITE ]</span>
@@ -110,7 +109,6 @@ export default function CreateAssignmentForm({ isOpen, onClose, onAddAssignment 
           </button>
         </div>
 
-        {/* Successful Code Generation Output */}
         {createdCode ? (
           <div className="p-8 text-center space-y-6 animate-in zoom-in duration-200">
             <div className="h-12 w-12 rounded-full bg-white text-black flex items-center justify-center mx-auto font-bold">
@@ -122,7 +120,6 @@ export default function CreateAssignmentForm({ isOpen, onClose, onAddAssignment 
               <p className="text-xs text-zinc-400 mt-1">Share this 6-digit join code with your students to accept submissions.</p>
             </div>
 
-            {/* 6-DIGIT CODE BOX WITH COPY BUTTON */}
             <div className="p-5 rounded-xl border border-zinc-700 bg-black max-w-sm mx-auto space-y-3 shadow-inner">
               <p className="text-xs font-mono text-zinc-400 uppercase">6-DIGIT CLASS CODE</p>
               <div className="text-4xl font-extrabold font-mono text-white tracking-widest">
@@ -155,7 +152,6 @@ export default function CreateAssignmentForm({ isOpen, onClose, onAddAssignment 
             </div>
           </div>
         ) : (
-          /* Form Input Fields (Course Code Removed) */
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             
             <div>

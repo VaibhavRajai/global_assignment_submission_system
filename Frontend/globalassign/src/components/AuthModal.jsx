@@ -16,15 +16,17 @@ import {
   UserPlus
 } from "lucide-react";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://globalassign-backend.vercel.app";
+
 export default function AuthModal({ isOpen, onClose, initialMode = "signup" }) {
   const router = useRouter();
-  const [mode, setMode] = useState(initialMode); // "signup" | "login"
+  const [mode, setMode] = useState(initialMode);
 
   // Form Fields
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("teacher"); // "teacher" | "student"
+  const [role, setRole] = useState("teacher");
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -42,8 +44,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = "signup" }) {
 
     try {
       const endpoint = mode === "signup" 
-        ? "http://localhost:5000/api/auth/signup" 
-        : "http://localhost:5000/api/auth/login";
+        ? `${API_BASE_URL}/api/auth/signup` 
+        : `${API_BASE_URL}/api/auth/login`;
 
       const payload = mode === "signup" 
         ? { name, email: cleanEmail, password, role } 
@@ -142,11 +144,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = "signup" }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in">
       <div className="w-full max-w-lg rounded-3xl border border-zinc-800 bg-zinc-950 text-white shadow-2xl overflow-hidden glass-panel relative">
-        
-        {/* Background Grid Accent */}
         <div className="absolute inset-0 bg-grid-pattern opacity-20 pointer-events-none" />
 
-        {/* Modal Header */}
         <div className="relative border-b border-zinc-800/80 p-6 bg-black/80 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-2xl bg-white text-black flex items-center justify-center font-extrabold shadow-md">
@@ -168,7 +167,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = "signup" }) {
           </button>
         </div>
 
-        {/* Mode Switcher Segmented Control */}
         <div className="p-2 bg-zinc-900/60 border-b border-zinc-800/80">
           <div className="grid grid-cols-2 p-1 rounded-2xl bg-black border border-zinc-800">
             <button
@@ -194,9 +192,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "signup" }) {
           </div>
         </div>
 
-        {/* Form Body */}
         <form onSubmit={handleSubmit} className="relative p-6 space-y-4">
-          
           {errorMsg && (
             <div className="p-3.5 rounded-xl bg-zinc-900 border border-zinc-700 text-xs text-white flex items-center gap-2 font-mono">
               <AlertCircle className="h-4 w-4 shrink-0 text-white" />
@@ -211,7 +207,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = "signup" }) {
             </div>
           )}
 
-          {/* SIGN UP ROLE SELECTION CARDS */}
           {mode === "signup" && (
             <div className="space-y-2">
               <label className="block text-xs font-mono text-zinc-400 uppercase tracking-wider">
@@ -256,7 +251,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = "signup" }) {
             </div>
           )}
 
-          {/* Full Name (Sign Up Only) */}
           {mode === "signup" && (
             <div>
               <label className="block text-xs font-mono text-zinc-400 mb-1 uppercase tracking-wider">FULL NAME *</label>
@@ -274,7 +268,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = "signup" }) {
             </div>
           )}
 
-          {/* Email Address */}
           <div>
             <label className="block text-xs font-mono text-zinc-400 mb-1 uppercase tracking-wider">EMAIL ADDRESS *</label>
             <div className="relative">
@@ -290,7 +283,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = "signup" }) {
             </div>
           </div>
 
-          {/* Password */}
           <div>
             <label className="block text-xs font-mono text-zinc-400 mb-1 uppercase tracking-wider">PASSWORD *</label>
             <div className="relative">
@@ -306,7 +298,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = "signup" }) {
             </div>
           </div>
 
-          {/* Submit Action Button */}
           <div className="pt-2">
             <button
               type="submit"
@@ -327,7 +318,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = "signup" }) {
             </button>
           </div>
 
-          {/* Bottom Switcher Helper */}
           <div className="pt-2 text-center text-xs text-zinc-400">
             {mode === "signup" ? (
               <p>
@@ -353,7 +343,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = "signup" }) {
               </p>
             )}
           </div>
-
         </form>
 
       </div>
