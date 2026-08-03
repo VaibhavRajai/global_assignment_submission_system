@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { X, PlusCircle, CheckCircle2, Copy, Check } from "lucide-react";
+import { X, PlusCircle, CheckCircle2, Copy, Check, AlertCircle } from "lucide-react";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://globalassign-backend.vercel.app";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export default function CreateAssignmentForm({ isOpen, onClose, onAddAssignment }) {
   const [title, setTitle] = useState("");
@@ -11,6 +11,7 @@ export default function CreateAssignmentForm({ isOpen, onClose, onAddAssignment 
   const [description, setDescription] = useState("");
   
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const [createdCode, setCreatedCode] = useState(null);
   const [copied, setCopied] = useState(false);
 
@@ -21,8 +22,15 @@ export default function CreateAssignmentForm({ isOpen, onClose, onAddAssignment 
     if (!title || !dueDate) return;
 
     setLoading(true);
+    setErrorMsg("");
 
     const token = localStorage.getItem("globalassign_token");
+    if (!token) {
+      setErrorMsg("Teacher authorization token missing. Please log in again.");
+      setLoading(false);
+      return;
+    }
+
     const payload = {
       title,
       dueDate,
@@ -41,36 +49,22 @@ export default function CreateAssignmentForm({ isOpen, onClose, onAddAssignment 
 
       const json = await res.json();
 
-      if (json.success && json.data) {
-        setCreatedCode(json.data.code);
-        onAddAssignment(json.data);
-      } else {
-        const fallbackCode = Math.floor(100000 + Math.random() * 900000).toString();
-        setCreatedCode(fallbackCode);
+      if (res.ok && json.success && json.data) {
+        const generatedCode = json.data.code || json.data.assignmentCode;
+        setCreatedCode(generatedCode);
         onAddAssignment({
-          id: Date.now().toString(),
-          title,
-          dueDate,
-          description,
-          code: fallbackCode,
+          ...json.data,
+          id: json.data.id || json.data._id,
+          code: generatedCode,
           submissions: 0,
-          totalStudents: 45,
+          totalStudents: 0,
           status: "Active"
         });
+      } else {
+        setErrorMsg(json.error || json.message || "Failed to create assignment on MongoDB server.");
       }
     } catch (err) {
-      const fallbackCode = Math.floor(100000 + Math.random() * 900000).toString();
-      setCreatedCode(fallbackCode);
-      onAddAssignment({
-        id: Date.now().toString(),
-        title,
-        dueDate,
-        description,
-        code: fallbackCode,
-        submissions: 0,
-        totalStudents: 45,
-        status: "Active"
-      });
+      setErrorMsg("Network error: Could not connect to backend server at " + API_BASE_URL);
     } finally {
       setLoading(false);
     }
@@ -85,6 +79,7 @@ export default function CreateAssignmentForm({ isOpen, onClose, onAddAssignment 
 
   const handleResetAndClose = () => {
     setCreatedCode(null);
+    setErrorMsg("");
     setCopied(false);
     setTitle("");
     setDueDate("");
@@ -116,7 +111,7 @@ export default function CreateAssignmentForm({ isOpen, onClose, onAddAssignment 
             </div>
 
             <div>
-              <h4 className="text-2xl font-extrabold text-white">Assignment Created!</h4>
+              <h4 className="text-2xl font-extrabold text-white">Assignment Created & Saved!</h4>
               <p className="text-xs text-zinc-400 mt-1">Share this 6-digit join code with your students to accept submissions.</p>
             </div>
 
@@ -154,6 +149,13 @@ export default function CreateAssignmentForm({ isOpen, onClose, onAddAssignment 
         ) : (
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             
+            {errorMsg && (
+              <div className="p-3.5 rounded-xl bg-zinc-900 border border-zinc-700 text-xs text-red-400 flex items-center gap-2 font-mono">
+                <AlertCircle className="h-4 w-4 text-red-400 shrink-0" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
             <div>
               <label className="block text-xs font-mono text-zinc-400 mb-1">ASSIGNMENT NAME / TITLE *</label>
               <input

@@ -1,193 +1,206 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import TeacherHeader from "@/components/TeacherHeader";
-import PastAssignmentsTable from "@/components/PastAssignmentsTable";
 import CreateAssignmentForm from "@/components/CreateAssignmentForm";
-import { Plus, BookOpen, Users, Sparkles } from "lucide-react";
+import { 
+  PlusCircle, 
+  Search, 
+  FileText, 
+  Users, 
+  Clock, 
+  ChevronRight, 
+  ExternalLink,
+  BookOpen,
+  Calendar,
+  Sparkles,
+  Eye
+} from "lucide-react";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://globalassign-backend.vercel.app";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export default function TeacherHomePage() {
+  const router = useRouter();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [dbStatus, setDbStatus] = useState("Loading History...");
+  const [searchTerm, setSearchTerm] = useState("");
+
   const [assignments, setAssignments] = useState([]);
-
-  // Fetch Account Specific Assignments from Vercel Backend API
-  const fetchAssignments = async () => {
-    const token = localStorage.getItem("globalassign_token");
-    const storedUser = localStorage.getItem("globalassign_user");
-    let teacherKey = "globalassign_history_default";
-
-    if (storedUser) {
-      try {
-        const u = JSON.parse(storedUser);
-        if (u.id || u.email) teacherKey = `globalassign_history_${u.id || u.email}`;
-      } catch (e) {}
-    }
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/assignments`, {
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
-      });
-      if (res.ok) {
-        const json = await res.json();
-        if (json.data && Array.isArray(json.data)) {
-          setAssignments(json.data);
-          localStorage.setItem(teacherKey, JSON.stringify(json.data));
-          setDbStatus("Vercel Backend & MongoDB Connected");
-          return;
-        }
-      }
-    } catch (err) {}
-
-    // Persistent Local Backup
-    const localBackup = localStorage.getItem(teacherKey);
-    if (localBackup) {
-      try {
-        const parsed = JSON.parse(localBackup);
-        setAssignments(parsed);
-        setDbStatus(`Saved History (${parsed.length} items)`);
-        return;
-      } catch (e) {}
-    }
-
-    setAssignments([]);
-    setDbStatus("Ready to create assignments");
-  };
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchAssignments();
   }, []);
 
-  const handleAddAssignment = async (newAssignment) => {
-    const storedUser = localStorage.getItem("globalassign_user");
-    let teacherKey = "globalassign_history_default";
+  const fetchAssignments = async () => {
+    setLoading(true);
+    const token = localStorage.getItem("globalassign_token");
 
-    if (storedUser) {
-      try {
-        const u = JSON.parse(storedUser);
-        if (u.id || u.email) teacherKey = `globalassign_history_${u.id || u.email}`;
-      } catch (e) {}
+    try {
+      if (token) {
+        const res = await fetch(`${API_BASE_URL}/api/assignments`, {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data)) {
+            setAssignments(json.data);
+            setLoading(false);
+            return;
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching teacher assignments:", err);
     }
 
-    const updated = [newAssignment, ...assignments];
-    setAssignments(updated);
-    localStorage.setItem(teacherKey, JSON.stringify(updated));
-
-    setTimeout(() => {
-      fetchAssignments();
-    }, 500);
+    setAssignments([]);
+    setLoading(false);
   };
 
-  const activeCount = assignments.filter(a => a.status === "Active" || !a.status).length;
-  const totalSubmissionsCount = assignments.reduce((acc, curr) => acc + (curr.submissions || 0), 0);
+  const handleAssignmentCreated = (newAssignment) => {
+    setIsCreateModalOpen(false);
+    fetchAssignments();
+  };
+
+  // Filter assignments by search term (Title or 6-digit Code)
+  const filteredAssignments = assignments.filter((item) => {
+    const titleMatch = (item.title || "").toLowerCase().includes(searchTerm.toLowerCase());
+    const codeMatch = (item.code || item.assignmentCode || "").toString().includes(searchTerm.trim());
+    return titleMatch || codeMatch;
+  });
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black flex flex-col font-sans relative">
-      <div className="absolute inset-0 bg-grid-pattern opacity-30 pointer-events-none" />
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-white/5 blur-[140px] rounded-full pointer-events-none" />
+    <div className="min-h-screen bg-black text-white flex flex-col font-sans relative selection:bg-white selection:text-black">
+      <div className="absolute inset-0 bg-grid-pattern opacity-25 pointer-events-none" />
 
       <TeacherHeader />
 
-      <main className="relative flex-1 py-10 px-6 mx-auto max-w-7xl w-full space-y-8">
+      <main className="relative flex-1 py-8 px-4 sm:px-6 mx-auto max-w-6xl w-full space-y-6 z-10">
         
-        {/* Modern Hero Section Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-zinc-800/80">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-zinc-900 border border-zinc-800 px-3 py-1 text-xs font-mono text-zinc-300">
-                <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-                FACULTY COMMAND CENTER
-              </span>
-              <span className="inline-block rounded-full bg-zinc-900/90 border border-zinc-800 px-3 py-1 text-xs font-mono text-zinc-400">
-                {dbStatus}
-              </span>
-            </div>
-
-            <h1 className="text-3xl font-extrabold text-white tracking-tight sm:text-5xl">
-              Educator Dashboard
-            </h1>
-            <p className="text-zinc-400 text-sm sm:text-base max-w-2xl">
-              Create assignments with instant 6-digit class codes, monitor student turn-ins, and view AI-synthesized class summaries.
-            </p>
+        {/* COMPACT DASHBOARD HEADER (No FACULTY Command or Vercel Tags) */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-800">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight text-white">Teacher Dashboard</h1>
+            <p className="text-xs text-zinc-400">Manage class assignments, generate 6-digit codes, and view student turn-ins.</p>
           </div>
 
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="group relative inline-flex items-center justify-center gap-2 rounded-xl bg-white px-7 py-3.5 text-sm font-extrabold text-black transition-all hover:bg-zinc-200 active:scale-95 shadow-2xl overflow-hidden"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-2.5 text-xs font-bold text-black hover:bg-zinc-200 transition-all active:scale-95 shadow-lg shrink-0"
           >
-            <Plus className="h-5 w-5 stroke-[3] transition-transform group-hover:rotate-90" />
-            <span>Create New Assignment</span>
+            <PlusCircle className="h-4 w-4" />
+            <span>Create Assignment</span>
           </button>
         </div>
 
-        {/* Metrics Bar */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          <div className="p-6 rounded-2xl border border-zinc-800 bg-zinc-900/50 glass-card-hover space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider">SAVED ASSIGNMENTS</span>
-              <div className="p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white">
-                <BookOpen className="h-5 w-5" />
-              </div>
-            </div>
-            <p className="text-3xl font-extrabold text-white font-mono">{assignments.length}</p>
-            <p className="text-xs text-zinc-400">Total Created History</p>
+        {/* SEARCH & FILTER BAR */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search assignments by title or 6-digit code..."
+              className="w-full rounded-xl bg-zinc-900 border border-zinc-800 pl-9 pr-4 py-2.5 text-xs font-mono text-white placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
+            />
           </div>
 
-          <div className="p-6 rounded-2xl border border-zinc-800 bg-zinc-900/50 glass-card-hover space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider">TURNED-IN FILES</span>
-              <div className="p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white">
-                <Users className="h-5 w-5" />
-              </div>
-            </div>
-            <p className="text-3xl font-extrabold text-white font-mono">{totalSubmissionsCount}</p>
-            <p className="text-xs text-zinc-400">Student Uploads Stored</p>
-          </div>
-
-          <div className="p-6 rounded-2xl border border-zinc-800 bg-zinc-900/50 glass-card-hover space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider">ACTIVE STATUS</span>
-              <div className="p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-white">
-                <Sparkles className="h-5 w-5 text-white" />
-              </div>
-            </div>
-            <p className="text-3xl font-extrabold text-white font-mono">{activeCount} Active</p>
-            <p className="text-xs text-zinc-400">Ready for Submissions</p>
-          </div>
+          <span className="text-xs font-mono text-zinc-400 bg-zinc-900 border border-zinc-800 px-3.5 py-2 rounded-xl shrink-0">
+            Total: {filteredAssignments.length}
+          </span>
         </div>
 
-        {/* History Table */}
-        <div className="space-y-4 pt-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-                <span>Assignment History</span>
-                <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400">
-                  {assignments.length} Total
-                </span>
-              </h2>
-              <p className="text-xs text-zinc-400 mt-0.5">Click "View" on any row to inspect student submissions and 6-digit class join codes.</p>
+        {/* ELEGANT ASSIGNMENT TABLE / GRID VIEW */}
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-950 overflow-hidden shadow-xl">
+          {loading ? (
+            <div className="p-8 text-center text-zinc-500 font-mono text-xs">
+              Loading assignments...
             </div>
-          </div>
+          ) : filteredAssignments.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs font-mono">
+                <thead className="bg-black text-zinc-400 uppercase border-b border-zinc-800 text-[11px]">
+                  <tr>
+                    <th scope="col" className="px-5 py-3.5 font-semibold">Assignment Title & Description</th>
+                    <th scope="col" className="px-5 py-3.5 font-semibold">Class Code</th>
+                    <th scope="col" className="px-5 py-3.5 font-semibold">Due Date</th>
+                    <th scope="col" className="px-5 py-3.5 font-semibold">Submissions</th>
+                    <th scope="col" className="px-5 py-3.5 font-semibold text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-800/60">
+                  {filteredAssignments.map((item) => (
+                    <tr key={item.id || item._id} className="hover:bg-zinc-900/40 transition-colors">
+                      
+                      {/* Title & Description */}
+                      <td className="px-5 py-3.5 font-sans font-semibold text-white">
+                        <div className="text-xs font-bold text-white">{item.title}</div>
+                        <p className="text-[11px] font-normal text-zinc-400 truncate max-w-sm mt-0.5">
+                          {item.description || "No description provided"}
+                        </p>
+                      </td>
 
-          <PastAssignmentsTable assignments={assignments} />
+                      {/* 6-Digit Class Code */}
+                      <td className="px-5 py-3.5">
+                        <span className="inline-block rounded-lg bg-zinc-900 border border-zinc-700 px-2.5 py-1 text-xs font-mono font-bold text-white tracking-widest">
+                          {item.code || item.assignmentCode}
+                        </span>
+                      </td>
+
+                      {/* Due Date */}
+                      <td className="px-5 py-3.5 text-zinc-300">
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <Calendar className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                          <span>{item.dueDate ? new Date(item.dueDate).toLocaleDateString() : "No deadline"}</span>
+                        </div>
+                      </td>
+
+                      {/* Submission Counts */}
+                      <td className="px-5 py-3.5 text-zinc-300">
+                        <div className="flex items-center gap-1.5">
+                          <Users className="h-3.5 w-3.5 text-zinc-400" />
+                          <span>{item.submissionsCount || item.submissions || 0} turn-ins</span>
+                        </div>
+                      </td>
+
+                      {/* Action: Redirect to View Page */}
+                      <td className="px-5 py-3.5 text-right">
+                        <button
+                          onClick={() => router.push(`/submission/${item.id || item._id}`)}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white text-black font-bold text-xs hover:bg-zinc-200 transition-all active:scale-95"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          <span>View Submissions</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="p-10 text-center text-zinc-500 font-mono text-xs space-y-2">
+              <BookOpen className="h-6 w-6 text-zinc-600 mx-auto" />
+              <p className="text-white font-bold text-xs">No assignments found</p>
+              <p className="text-zinc-500 text-[11px]">Click "Create Assignment" above to draft your first assignment.</p>
+            </div>
+          )}
         </div>
 
       </main>
 
+      {/* CREATE ASSIGNMENT MODAL */}
       <CreateAssignmentForm
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onAddAssignment={handleAddAssignment}
+        onAddAssignment={handleAssignmentCreated}
       />
-
-      <footer className="border-t border-zinc-800/80 py-6 text-center text-xs font-mono text-zinc-500">
-        GlobalAssign Educator Suite • Live Vercel Backend Connected
-      </footer>
     </div>
   );
 }

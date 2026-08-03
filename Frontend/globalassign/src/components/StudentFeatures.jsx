@@ -5,11 +5,11 @@ export default function StudentFeatures() {
     {
       step: "01",
       title: "Safe & Encrypted Upload",
-      summary: "End-to-end client-side encryption ensures student work remains secure and confidential.",
+      summary: "End-to-end encryption ensures student work remains secure and confidential.",
       details: [
-        "AES-256 GCM client-side encryption protects submission contents prior to upload.",
-        "Zero-Knowledge storage guarantees only authorized course teachers can decrypt submissions.",
-        "Seamless drag-and-drop file support for PDF, DOCX, ZIP archives, and Python/Jupyter files.",
+        "AES-256 GCM encryption protects submission contents prior to AWS S3 upload.",
+        "Secure storage guarantees only authorized course teachers can view submissions.",
+        "Seamless file support for PDF, DOCX, ZIP archives, PNG, JPG, and text files.",
         "Mobile-optimized upload interface for submitting assignments directly from tablets or phones."
       ]
     },
@@ -19,7 +19,7 @@ export default function StudentFeatures() {
       summary: "Automated threat isolation and pre-submission integrity checks.",
       details: [
         "Automated cloud sandbox scans all incoming files for malware or malicious macros.",
-        "Real-time originality pre-check provides immediate feedback on citation and similarity.",
+        "Real-time text extraction & OCR parsing provides immediate text analysis.",
         "Prevents file corruption issues during upload with automatic checksum verification.",
         "Ensures teachers can safely download and review student work without security risks."
       ]
@@ -43,7 +43,7 @@ export default function StudentFeatures() {
         
         {/* Section Header */}
         <div className="mb-12">
-          <div className="inline-block rounded-full bg-zinc-900 border border-zinc-800 px-3 py-1 text-xs font-mono text-zinc-400 mb-2">
+          <div className="inline-block rounded-full bg-zinc-900 border border-zinc-800 px-3.5 py-1 text-xs font-mono text-zinc-400 mb-3">
             FOR STUDENTS
           </div>
           <h2 className="text-3xl font-extrabold text-white sm:text-4xl tracking-tight">
@@ -59,7 +59,7 @@ export default function StudentFeatures() {
           {features.map((item, idx) => (
             <div
               key={idx}
-              className="rounded-xl border border-zinc-800 bg-zinc-950 p-6 flex flex-col justify-between"
+              className="rounded-2xl border border-zinc-800 bg-zinc-950 p-6 flex flex-col justify-between shadow-2xl text-white"
             >
               <div>
                 <div className="text-xs font-mono text-zinc-500 mb-2">PROTECTION {item.step}</div>

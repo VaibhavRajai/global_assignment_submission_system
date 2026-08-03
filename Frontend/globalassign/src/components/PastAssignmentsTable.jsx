@@ -17,7 +17,7 @@ import {
   XCircle
 } from "lucide-react";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://globalassign-backend.vercel.app";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export default function PastAssignmentsTable({ assignments }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -359,15 +359,15 @@ export default function PastAssignmentsTable({ assignments }) {
                               </select>
                             </div>
 
-                            {/* VIEW OPTION: OPENS IN NEW TAB */}
+                            {/* VIEW OPTION: OPENS S3 PRE-SIGNED URL IN NEW TAB */}
                             <a
-                              href={`/submission/${sub._id || "sub_101"}`}
+                              href={sub.presignedUrl || sub.viewUrl || sub.fileUrl || `/submission/${sub._id || "sub_101"}`}
                               target="_blank"
                               rel="noreferrer"
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-700 bg-zinc-900 text-xs font-extrabold text-white hover:bg-white hover:text-black transition-all active:scale-95"
                             >
                               <Eye className="h-3.5 w-3.5" />
-                              <span>View (New Tab)</span>
+                              <span>View S3 File</span>
                               <ExternalLink className="h-3 w-3" />
                             </a>
                           </div>

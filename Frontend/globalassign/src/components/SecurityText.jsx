@@ -6,7 +6,7 @@ export default function SecurityText() {
       <div className="mx-auto max-w-5xl px-6">
         
         <div className="mb-10">
-          <div className="inline-block rounded-full bg-zinc-900 border border-zinc-800 px-3 py-1 text-xs font-mono text-zinc-400 mb-2">
+          <div className="inline-block rounded-full bg-zinc-900 border border-zinc-800 px-3.5 py-1 text-xs font-mono text-zinc-400 mb-3">
             SECURITY & PRIVACY
           </div>
           <h2 className="text-3xl font-extrabold text-white sm:text-4xl tracking-tight">
@@ -18,7 +18,7 @@ export default function SecurityText() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="rounded-xl border border-zinc-800 bg-black p-6 space-y-4">
+          <div className="rounded-2xl border border-zinc-800 bg-black p-8 space-y-4 shadow-2xl text-white">
             <h3 className="text-lg font-bold text-white uppercase font-mono tracking-wider">
               [ Educator Safeguards ]
             </h3>
@@ -38,7 +38,7 @@ export default function SecurityText() {
             </ul>
           </div>
 
-          <div className="rounded-xl border border-zinc-800 bg-black p-6 space-y-4">
+          <div className="rounded-2xl border border-zinc-800 bg-black p-8 space-y-4 shadow-2xl text-white">
             <h3 className="text-lg font-bold text-white uppercase font-mono tracking-wider">
               [ Student Safeguards ]
             </h3>

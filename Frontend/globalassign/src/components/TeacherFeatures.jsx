@@ -7,10 +7,10 @@ export default function TeacherFeatures() {
       title: "Create Assignments",
       summary: "Draft and publish clear assignment tasks with custom parameters.",
       details: [
-        "Define assignment title, course code, detailed instructions, and submission deadlines.",
-        "Set accepted file formats including PDF documents, ZIP archives, and Jupyter Notebooks.",
-        "Attach custom grading rubrics and enable automated AI analysis for incoming submissions.",
-        "Schedule future assignment release dates and set automatic deadline enforcement windows."
+        "Define assignment title, 6-digit class code, instructions, and submission deadlines.",
+        "Set accepted file formats including PDF documents, ZIP archives, PNG, JPG, and text files.",
+        "Attach custom grading rubrics and enable automated text/OCR parsing for incoming submissions.",
+        "Schedule assignment release dates and set automatic deadline enforcement windows."
       ]
     },
     {
@@ -18,8 +18,8 @@ export default function TeacherFeatures() {
       title: "View Submissions & Track Progress",
       summary: "Monitor class turn-ins live through a clean, unified dashboard.",
       details: [
-        "View all active assignments and track real-time submission counts (e.g. 42/45 turned in).",
-        "Inspect student turn-in status, submission timestamps, and file version history.",
+        "View all active assignments and track real-time submission counts in one clean dashboard.",
+        "Inspect student turn-in status, submission timestamps, and pre-signed S3 download links.",
         "Filter student work by course section, submission status, or grade distribution.",
         "Access student submissions from any device with responsive web support."
       ]
@@ -31,7 +31,7 @@ export default function TeacherFeatures() {
       details: [
         "Synthesize batch student submissions into a concise executive summary in under 3 seconds.",
         "Identify key class strengths and recurring conceptual misunderstandings across submissions.",
-        "Review automatically calculated grade distribution curves (A, B, C, D percentages).",
+        "Review automatically calculated grade distribution curves and performance metrics.",
         "Receive tailored AI recommendations for topics to review in upcoming lectures."
       ]
     }
@@ -43,7 +43,7 @@ export default function TeacherFeatures() {
         
         {/* Section Header */}
         <div className="mb-12">
-          <div className="inline-block rounded-full bg-zinc-900 border border-zinc-800 px-3 py-1 text-xs font-mono text-zinc-400 mb-2">
+          <div className="inline-block rounded-full bg-zinc-900 border border-zinc-800 px-3.5 py-1 text-xs font-mono text-zinc-400 mb-3">
             FOR EDUCATORS & TEACHERS
           </div>
           <h2 className="text-3xl font-extrabold text-white sm:text-4xl tracking-tight">
@@ -59,7 +59,7 @@ export default function TeacherFeatures() {
           {features.map((item, idx) => (
             <div
               key={idx}
-              className="rounded-xl border border-zinc-800 bg-black p-6 flex flex-col justify-between"
+              className="rounded-2xl border border-zinc-800 bg-black p-6 flex flex-col justify-between shadow-2xl text-white"
             >
               <div>
                 <div className="text-xs font-mono text-zinc-500 mb-2">FEATURE {item.step}</div>

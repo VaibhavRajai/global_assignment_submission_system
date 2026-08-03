@@ -35,7 +35,7 @@ body {
   background: radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.12) 0%, rgba(0, 0, 0, 0.98) 70%);
 }
 
-/* Glassmorphism Monochrome */
+/* Glassmorphism Dark Monochrome */
 .glass-panel {
   background: rgba(18, 18, 21, 0.75);
   backdrop-filter: blur(16px);
@@ -51,18 +51,6 @@ body {
   border-color: rgba(255, 255, 255, 0.4);
   transform: translateY(-2px);
   box-shadow: 0 10px 30px -10px rgba(255, 255, 255, 0.15);
-}
-
-/* Shimmer Animation */
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-.animate-shimmer {
-  background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.03) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 3s infinite;
 }
 
 /* Custom Scrollbar */

@@ -12,7 +12,7 @@ export default function Hero() {
 
         {/* Main Headline */}
         <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl leading-tight">
-          Simplified Assignment Management for <span className="underline decoration-zinc-600 underline-offset-8">Teachers</span> & Safe Submissions for <span className="bg-white text-black px-2 py-0.5 rounded">Students</span>.
+          Simplified Assignment Management for <span className="underline decoration-zinc-600 underline-offset-8">Teachers</span> & Safe Submissions for <span className="bg-white text-black px-2.5 py-0.5 rounded-lg">Students</span>.
         </h1>
 
         {/* Subtitle */}
@@ -23,9 +23,9 @@ export default function Hero() {
         {/* Two Column Feature Summary Text Cards */}
         <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
           {/* Teacher Summary Box */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-6 space-y-3">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-8 space-y-3 shadow-2xl text-white">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-white" />
+              <span className="h-2.5 w-2.5 rounded-full bg-white" />
               Teacher Platform Features
             </h2>
             <p className="text-sm text-zinc-400 leading-relaxed">
@@ -34,9 +34,9 @@ export default function Hero() {
           </div>
 
           {/* Student Summary Box */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-6 space-y-3">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-8 space-y-3 shadow-2xl text-white">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-white" />
+              <span className="h-2.5 w-2.5 rounded-full bg-white" />
               Student Safe Upload Features
             </h2>
             <p className="text-sm text-zinc-400 leading-relaxed">
