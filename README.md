@@ -1,4 +1,4 @@
-# GlobalAssign | Academic Assignment Vault & AI Inspection Platform
+# GlobalAssign | Global Assignment Submission System
 
 ## 📖 About Project
 **GlobalAssign** is a modern, enterprise-grade academic management platform designed for **Educators/Teachers** and **Students**. Built with Next.js 16, Express.js, MongoDB, Redis, and AWS S3, GlobalAssign simplifies assignment workflows:
