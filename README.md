@@ -31,15 +31,29 @@
 
 ---
 
+## 🏗️ Project Architecture
+
+```
+GlobalAssign/
+├── Server/              # Express.js Node.js Server & APIs
+├── Frontend/            # Next.js 16 Web Application
+├── FastAPI/             # Python RAG & ChromaDB Microservice
+├── README.md
+└── .gitignore
+```
+
+---
+
 ## 🛠️ Tech Stack
 
 | Component | Technology |
 | :--- | :--- |
 | **Frontend Framework** | Next.js |
 | **Styling & Icons** | TailwindCSS v4, Lucide React Icons |
-| **Backend Framework** | Node.js, Express.js, FastAPI (Python Microservice) |
-| **Databases & Cache** | MongoDB (Mongoose ODM), Docker-based Redis (OTP & session cache) |
-| **Vector Store & RAG Engine** | ChromaDB (Vector Database), LangChain / LlamaIndex RAG Pipeline |
+| **Backend Server** | Node.js, Express.js (Server) |
+| **Microservice** | FastAPI (Python Microservice) |
+| **Databases & Cache** | MongoDB (Mongoose ODM), Docker-based Redis |
+| **Vector Store & RAG Engine** | ChromaDB (Vector Database), RAG Pipeline |
 | **Cloud Storage** | AWS S3 v3 |
 | **Security & Auth** | JWT (Access & Refresh Tokens), Bcrypt password hashing |
-| **AI & Document Parsing** | FastAPI microservices, ChromaDB embeddings, `pdf-parse` (PDF extraction), `tesseract.js` (OCR for PNG/JPG/WEBP images) |
+| **AI & Document Parsing** | FastAPI microservices, ChromaDB embeddings, `pdf-parse`, `tesseract.js` OCR |
