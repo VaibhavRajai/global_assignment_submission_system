@@ -1,46 +1,31 @@
-const express = require("express");
-const cors = require("cors");
-const dotenv = require("dotenv");
-const connectDB = require("./config/db");
-
-// Load Environment Variables
+const express = require('express');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const connectToDb = require('./config/db');
+const dotenv = require('dotenv');
+const { connectRedis } = require('./config/redis');
 dotenv.config();
 
-// Connect to MongoDB Database
-connectDB();
-
+// routes
+const authRoutes = require('./routes/auth.routes');
+const assignmentRoutes = require('./routes/assignment.routes');
 const app = express();
 
-// Middleware: Enable CORS for cross-origin requests
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
-
 app.use(express.json());
+app.use(cookieParser());
+app.use(cors());
 
-// API Routes
-app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/assignments", require("./routes/assignmentRoutes"));
+app.use('/api/auth', authRoutes);
+app.use('/api/assignments', assignmentRoutes);
 
-// Health Check Endpoint
-app.get("/", (req, res) => {
-  res.json({
-    status: "GlobalAssign Backend Server API Running on Vercel Serverless",
-    auth: "JWT Enabled (Teacher & Student Models)",
-    dbConnection: "MongoDB Atlas",
-    version: "1.0.0"
-  });
-});
+const PORT = process.env.PORT || 3000;
+const startServer = async () => {
+    await connectToDb();
+    await connectRedis();
 
-const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+        console.log(`🚀 Server running on port ${PORT}`);
+    });
+};
 
-if (process.env.NODE_ENV !== "production") {
-  app.listen(PORT, () => {
-    console.log(`[GlobalAssign Backend Running] Port: ${PORT}`);
-  });
-}
-
-// Export for Vercel Serverless Execution
-module.exports = app;
+startServer();

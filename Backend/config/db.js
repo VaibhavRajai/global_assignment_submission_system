@@ -1,13 +1,17 @@
-const mongoose = require("mongoose");
 
+const mongoose = require("mongoose");
+require("dotenv").config();
 const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
-    console.log(`[MongoDB Connected] Host: ${conn.connection.host}`);
-  } catch (error) {
-    console.error(`[MongoDB Connection Error]: ${error.message}`);
-    console.error(`Please verify that you have replaced <db_password> in your .env file with your actual database password.`);
-  }
+    try {
+        await mongoose.connect(process.env.MONGO_URI);
+
+        console.log("✅ MongoDB Connected Successfully");
+    } catch (error) {
+        console.error("❌ MongoDB Connection Failed");
+        console.error(error.message);
+
+        process.exit(1);
+    }
 };
 
 module.exports = connectDB;
