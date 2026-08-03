@@ -35,10 +35,10 @@
 
 | Component | Technology |
 | :--- | :--- |
-| **Frontend Framework** | Next.js 16 (App Router, Turbopack), React 19 |
-| **Styling & Icons** | Vanilla CSS, TailwindCSS v4, Lucide React Icons |
+| **Frontend Framework** | Next.js  |
+| **Styling & Icons** |  TailwindCSS v4, Lucide React Icons |
 | **Backend Framework** | Node.js, Express.js |
-| **Database & Caching** | MongoDB (Mongoose ODM), Redis (ioredis for OTP & session cache) |
-| **Cloud Storage** | AWS S3 v3 (`@aws-sdk/client-s3`, `@aws-sdk/s3-request-presigner`) |
-| **Security & Auth** | JWT (Access & Refresh Tokens), Bcrypt password hashing, Dotenv |
+| **Database & Caching** | MongoDB (Mongoose ODM), Redis (docker redis for OTP & session cache) |
+| **Cloud Storage** | AWS S3 v3  |
+| **Security & Auth** | JWT (Access & Refresh Tokens), Bcrypt password hashing,  |
 | **AI & Document Parsing** | `pdf-parse` (PDF text extraction), `tesseract.js` (OCR for PNG/JPG/WEBP images) |
