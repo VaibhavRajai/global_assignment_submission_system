@@ -10,7 +10,7 @@
 ## 🌟 Key Features
 
 ### 👩‍🏫 Educator & Teacher Suite
-* **6-Digit Class Code Generation**: Draft assignments with title, due date, description, and total marks. Automatically generates a unique 6-digit class code (e.g. `801376`).
+* **6-Digit Class Code Generation**: Draft assignments with title, due date, description, and total marks. Automatically generates a unique 6-digit class code (e.g. `801372`).
 * **Real-Time Search & Dashboard**: Search assignments live by Title or 6-Digit Class Code.
 * **Inline Assignment Editing**: Edit assignment titles, deadlines, and descriptions directly from the dashboard.
 * **AWS S3 Pre-Signed Viewing**: Secure, time-limited S3 pre-signed URLs to view or download student files safely.
