@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || "http://localhost:8000";
 
 export default function AssignmentSubmissionsPage({ params }) {
   const router = useRouter();
@@ -51,6 +52,7 @@ export default function AssignmentSubmissionsPage({ params }) {
   const [chatInput, setChatInput] = useState("");
   const [isAiThinking, setIsAiThinking] = useState(false);
   const [activeRemark, setActiveRemark] = useState("Unchecked");
+  const [mobileViewTab, setMobileViewTab] = useState("chat"); // "chat" or "viewer" on mobile screens
 
   useEffect(() => {
     fetchAssignmentDetails();
@@ -118,19 +120,36 @@ export default function AssignmentSubmissionsPage({ params }) {
     setSelectedSubmission(sub);
     setActiveRemark(sub.remark || "Unchecked");
 
-    const extractedText = sub.data || sub.extractedText || "No text could be extracted automatically from this file.";
     const studentName = sub.studentName || sub.student?.fullName || "Student";
+    const docId = sub.id || sub._id || "submission_doc";
+    const docText = sub.data || sub.extractedText || "";
+    const fileUrl = sub.presignedUrl || sub.viewUrl || sub.fileUrl || "";
+
+    // Non-blocking background pre-indexing call (pre-embeds before teacher asks question)
+    fetch(`${FASTAPI_URL}/api/v1/rag/ingest`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        doc_id: String(docId),
+        text: docText,
+        file_url: fileUrl,
+        title: sub.fileName || ""
+      })
+    }).catch(() => {});
 
     setChatMessages([
       {
         sender: "bot",
-        text: `🤖 **AI Assistant Ready for ${studentName}'s Submission**\n\nFile: \`${sub.fileName}\`\n\n**Extracted Content Preview:**\n${extractedText.substring(0, 350)}...\n\nHow can I help you evaluate or grade this submission?`
+        text: `AI Assistant Ready for ${studentName}'s Submission\n\nFile: ${sub.fileName}\n\nAsk any question about this document to check topics, verify skills, or summarize content.`
       }
     ]);
   };
 
-  // Handle Chatbot User Input
-  const handleSendChatMessage = (e) => {
+
+  // Handle Chatbot User Input with RAG Microservice (ChromaDB + HuggingFace + Gemini AI)
+  const handleSendChatMessage = async (e) => {
     e?.preventDefault();
     if (!chatInput.trim() || isAiThinking) return;
 
@@ -139,18 +158,67 @@ export default function AssignmentSubmissionsPage({ params }) {
     setChatInput("");
     setIsAiThinking(true);
 
-    setTimeout(() => {
-      let replyText = `Based on student submission "${selectedSubmission.fileName}", the content aligns with rubric expectations. Technical terminology and formatting criteria are verified.`;
-      
-      if (userText.toLowerCase().includes("grade") || userText.toLowerCase().includes("score")) {
-        replyText = `Suggested grade: **92/100**. Submission demonstrates solid understanding of requirements with accurate structure.`;
-      } else if (userText.toLowerCase().includes("plagiarism") || userText.toLowerCase().includes("similarity")) {
-        replyText = `Originality check: **98% Unique**. No significant similarity detected across stored submissions.`;
-      }
+    try {
+      const docId = selectedSubmission?.id || selectedSubmission?._id || "submission_doc";
+      const docText = selectedSubmission?.data || selectedSubmission?.extractedText || "";
+      const fileUrl = selectedSubmission?.presignedUrl || selectedSubmission?.viewUrl || selectedSubmission?.fileUrl || "";
 
-      setChatMessages((prev) => [...prev, { sender: "bot", text: replyText }]);
+      // Clean timeout using Promise.race (prevents Next.js AbortSignal errors)
+      const fetchPromise = fetch(`${FASTAPI_URL}/api/v1/rag/query`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          doc_id: String(docId),
+          text: docText,
+          file_url: fileUrl,
+          query: userText
+        })
+      });
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("TimeoutError")), 35000)
+      );
+
+      const res = await Promise.race([fetchPromise, timeoutPromise]);
+      const json = await res.json();
+
+      if (json && json.answer) {
+        setChatMessages((prev) => [...prev, { sender: "bot", text: json.answer }]);
+      } else if (json && json.detail) {
+        setChatMessages((prev) => [
+          ...prev, 
+          { sender: "bot", text: `⚠️ **RAG Error:** ${typeof json.detail === 'string' ? json.detail : JSON.stringify(json.detail)}` }
+        ]);
+      } else {
+        setChatMessages((prev) => [
+          ...prev, 
+          { sender: "bot", text: "⚠️ Unable to process document query at this time." }
+        ]);
+      }
+    } catch (err) {
+      console.error("Error querying RAG microservice:", err);
+      if (err.message === 'TimeoutError') {
+        setChatMessages((prev) => [
+          ...prev,
+          { 
+            sender: "bot", 
+            text: `⏱️ **Timeout Error:** The AI query took longer than 35 seconds to respond. Please try sending your question again.` 
+          }
+        ]);
+      } else {
+        setChatMessages((prev) => [
+          ...prev,
+          { 
+            sender: "bot", 
+            text: `🤖 **RAG Service Offline:** Could not connect to RAG backend at \`${FASTAPI_URL}\`.\n\nPlease start the FastAPI server (\`python -m uvicorn main:app --reload\`) from the \`FastAPI\` directory.` 
+          }
+        ]);
+      }
+    } finally {
       setIsAiThinking(false);
-    }, 800);
+    }
   };
 
   // Handle Updating Remark
@@ -393,27 +461,59 @@ export default function AssignmentSubmissionsPage({ params }) {
 
         </div>
       ) : (
-        /* MODE 2: LEFT CHATBOT INTERFACE + RIGHT DOCUMENT VIEWER */
-        <div className="flex-1 flex flex-col md:flex-row overflow-hidden divide-y md:divide-y-0 md:divide-x divide-zinc-800">
+        /* MODE 2: LEFT CHATBOT INTERFACE + RIGHT DOCUMENT VIEWER WITH MOBILE RESPONSIVE TABS */
+        <div className="flex-1 flex flex-col md:flex-row overflow-hidden divide-y md:divide-y-0 md:divide-x divide-zinc-800 relative">
           
-          {/* LEFT SIDE (40%): CHATBOT TYPE INTERFACE */}
-          <div className="w-full md:w-[40%] bg-zinc-950 flex flex-col overflow-hidden">
+          {/* MOBILE NAVIGATION BAR (< 768px) */}
+          <div className="flex md:hidden items-center border-b border-zinc-800 bg-zinc-950 font-mono text-xs shrink-0">
+            <button
+              onClick={() => setMobileViewTab("chat")}
+              className={`flex-1 py-2.5 text-center font-bold flex items-center justify-center gap-1.5 transition-all ${
+                mobileViewTab === "chat" ? "bg-white text-black" : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <Bot className="h-4 w-4" />
+              <span>AI Chatbot</span>
+            </button>
+            <button
+              onClick={() => setMobileViewTab("viewer")}
+              className={`flex-1 py-2.5 text-center font-bold flex items-center justify-center gap-1.5 transition-all ${
+                mobileViewTab === "viewer" ? "bg-white text-black" : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <FileText className="h-4 w-4" />
+              <span>Document Viewer</span>
+            </button>
+          </div>
+          
+          {/* LEFT SIDE (40% on Desktop / Hidden on Mobile when viewer active): CHATBOT INTERFACE */}
+          <div className={`w-full md:w-[40%] bg-zinc-950 flex flex-col overflow-hidden ${
+            mobileViewTab === "chat" ? "flex flex-1" : "hidden md:flex"
+          }`}>
             
             {/* Chatbot Header */}
-            <div className="p-4 border-b border-zinc-800 bg-black flex items-center justify-between">
-              <div className="flex items-center gap-2 font-mono text-xs">
-                <Bot className="h-4 w-4 text-white" />
-                <span className="font-bold text-white">AI Grading & Q&A Assistant</span>
+            <div className="p-3 sm:p-4 border-b border-zinc-800 bg-zinc-900/60 backdrop-blur-md flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 font-sans text-xs">
+                <div className="h-6 w-6 rounded-lg bg-white text-black flex items-center justify-center font-extrabold text-[10px] shrink-0">
+                  AI
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-bold text-white leading-tight">AI Grading & Q&A Assistant</span>
+                  <span className="text-[10px] text-zinc-400 font-mono flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    RAG Engine Active
+                  </span>
+                </div>
               </div>
 
               {/* Grading Remark Buttons */}
-              <div className="flex items-center gap-1 font-mono text-[10px]">
+              <div className="flex items-center gap-1 font-mono text-[10px] shrink-0">
                 {["Pass", "Fail", "Checked"].map((r) => (
                   <button
                     key={r}
                     onClick={() => handleUpdateRemark(r)}
                     className={`px-2 py-0.5 rounded border transition-all ${
-                      activeRemark === r ? "bg-white text-black border-white font-bold" : "bg-zinc-900 text-zinc-400 border-zinc-800"
+                      activeRemark === r ? "bg-white text-black border-white font-bold" : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-white"
                     }`}
                   >
                     {r}
@@ -423,26 +523,94 @@ export default function AssignmentSubmissionsPage({ params }) {
             </div>
 
             {/* Chat Messages Area */}
-            <div className="flex-1 p-4 overflow-y-auto space-y-3 font-mono text-xs">
+            <div className="flex-1 p-3 sm:p-4 overflow-y-auto space-y-4 font-sans text-xs">
               {chatMessages.map((msg, idx) => (
                 <div
                   key={idx}
-                  className={`p-3 rounded-2xl max-w-[90%] whitespace-pre-wrap leading-relaxed ${
-                    msg.sender === "user"
-                      ? "ml-auto bg-white text-black font-sans font-medium"
-                      : "bg-black text-zinc-200 border border-zinc-800"
-                  }`}
+                  className={`flex gap-2.5 items-start ${msg.sender === "user" ? "flex-row-reverse" : "flex-row"}`}
                 >
-                  {msg.text}
+                  {/* Avatar Icon */}
+                  <div className={`h-6 w-6 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5 ${
+                    msg.sender === "user" ? "bg-zinc-800 text-white" : "bg-white text-black"
+                  }`}>
+                    {msg.sender === "user" ? "T" : "AI"}
+                  </div>
+
+                  {/* Message Bubble */}
+                  <div
+                    className={`p-3.5 rounded-2xl max-w-[85%] leading-relaxed ${
+                      msg.sender === "user"
+                        ? "bg-white text-black font-medium shadow-md rounded-tr-none"
+                        : "bg-zinc-900/90 text-zinc-200 border border-zinc-800/80 shadow-md rounded-tl-none space-y-1 font-sans"
+                    }`}
+                  >
+                    {msg.sender === "user" ? (
+                      msg.text
+                    ) : (
+                      // Clean formatted renderer stripping raw ** asterisks and headings
+                      msg.text.split("\n").map((line, lIdx) => {
+                        let cleanLine = line.replace(/^#+\s*/, "").replace(/^📌\s*/, "");
+                        const parts = cleanLine.split(/(\*\*.*?\*\*|`.*?`)/g);
+
+                        return (
+                          <div key={lIdx} className={cleanLine.trim() === "" ? "h-1.5" : "min-h-[1.2rem]"}>
+                            {parts.map((part, pIdx) => {
+                              if (part.startsWith("**") && part.endsWith("**")) {
+                                return (
+                                  <strong key={pIdx} className="font-bold text-white">
+                                    {part.slice(2, -2)}
+                                  </strong>
+                                );
+                              }
+                              if (part.startsWith("`") && part.endsWith("`")) {
+                                return (
+                                  <code key={pIdx} className="bg-zinc-800 text-zinc-200 px-1 py-0.5 rounded font-mono text-[11px]">
+                                    {part.slice(1, -1)}
+                                  </code>
+                                );
+                              }
+                              return part;
+                            })}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
               ))}
 
               {isAiThinking && (
-                <div className="p-3 rounded-2xl bg-black border border-zinc-800 text-zinc-400 text-[11px] flex items-center gap-2">
-                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                  <span>AI Analyzing submission...</span>
+                <div className="flex gap-2.5 items-center text-zinc-400 text-[11px] font-mono pl-1">
+                  <div className="h-6 w-6 rounded-lg bg-white text-black flex items-center justify-center font-bold text-[10px] shrink-0">
+                    AI
+                  </div>
+                  <div className="flex items-center gap-2 p-2.5 rounded-2xl bg-zinc-900 border border-zinc-800">
+                    <RefreshCw className="h-3.5 w-3.5 animate-spin text-zinc-300" />
+                    <span>Analyzing document text...</span>
+                  </div>
                 </div>
               )}
+            </div>
+
+            {/* Quick Suggestion Chips */}
+            <div className="px-3 pt-2 pb-1.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar font-sans text-[11px] border-t border-zinc-900 bg-black/60">
+              {[
+                { label: "💡 Summarize Submission", query: "Summarize this document" },
+                { label: "⚡ Technical Skills", query: "What skills are listed?" },
+                { label: "🏢 Experience Check", query: "What work experience does candidate have?" },
+                { label: "🎓 Education Details", query: "Where did candidate study?" }
+              ].map((chip, cIdx) => (
+                <button
+                  key={cIdx}
+                  type="button"
+                  onClick={() => {
+                    setChatInput(chip.query);
+                  }}
+                  className="px-2.5 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-600 transition-all shrink-0 font-medium"
+                >
+                  {chip.label}
+                </button>
+              ))}
             </div>
 
             {/* Chat Input Form */}
@@ -451,25 +619,27 @@ export default function AssignmentSubmissionsPage({ params }) {
                 type="text"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
-                placeholder="Ask AI about student's answer or grade..."
-                className="flex-1 rounded-xl bg-zinc-900 border border-zinc-800 px-3 py-2 text-xs font-mono text-white focus:outline-none"
+                placeholder="Ask AI about student's submission or grade..."
+                className="flex-1 rounded-xl bg-zinc-900 border border-zinc-800 px-3.5 py-2.5 text-xs font-sans text-white placeholder-zinc-500 focus:border-zinc-600 focus:outline-none"
               />
               <button
                 type="submit"
                 disabled={!chatInput.trim() || isAiThinking}
-                className="p-2 rounded-xl bg-white text-black font-bold disabled:opacity-50 hover:bg-zinc-200"
+                className="p-2.5 rounded-xl bg-white text-black font-bold disabled:opacity-40 hover:bg-zinc-200 transition-all active:scale-95 shrink-0 shadow-md"
               >
                 <Send className="h-4 w-4 text-black" />
               </button>
             </form>
           </div>
 
-          {/* RIGHT SIDE (60%): DOCUMENT VIEWER */}
-          <div className="w-full md:w-[60%] bg-black flex flex-col overflow-hidden relative">
+          {/* RIGHT SIDE (60% on Desktop / Hidden on Mobile when chat active): DOCUMENT VIEWER */}
+          <div className={`w-full md:w-[60%] bg-black flex flex-col overflow-hidden relative ${
+            mobileViewTab === "viewer" ? "flex flex-1" : "hidden md:flex"
+          }`}>
             {selectedSubmission.presignedUrl || selectedSubmission.viewUrl || selectedSubmission.fileUrl ? (
               <iframe
                 src={selectedSubmission.presignedUrl || selectedSubmission.viewUrl || selectedSubmission.fileUrl}
-                className="w-full h-full border-0 bg-zinc-900"
+                className="w-full h-full border-0 bg-zinc-900 min-h-[400px] md:min-h-full"
                 title="Student Submission Document"
               />
             ) : (

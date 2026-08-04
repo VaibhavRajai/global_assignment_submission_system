@@ -333,124 +333,210 @@ export default function StudentHomePage() {
                 Loading history...
               </div>
             ) : history.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs font-mono">
-                  <thead className="bg-black text-zinc-400 uppercase border-b border-zinc-800 text-[11px]">
-                    <tr>
-                      <th scope="col" className="px-5 py-3 font-semibold">Assignment Name</th>
-                      <th scope="col" className="px-5 py-3 font-semibold">Deadline</th>
-                      <th scope="col" className="px-5 py-3 font-semibold">Status</th>
-                      <th scope="col" className="px-5 py-3 font-semibold">Submitted File</th>
-                      <th scope="col" className="px-5 py-3 font-semibold">Remark</th>
-                      <th scope="col" className="px-5 py-3 font-semibold text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-800/60">
-                    {history.map((item, index) => (
-                      <tr key={item.id || item._id || index} className="hover:bg-zinc-900/40 transition-colors">
-                        
-                        {/* Assignment Name */}
-                        <td className="px-5 py-3.5 font-sans font-semibold text-white">
-                          <div className="text-xs">{item.title}</div>
+              <>
+                {/* MOBILE CARDS VIEW (< 640px) */}
+                <div className="block sm:hidden divide-y divide-zinc-800">
+                  {history.map((item, index) => (
+                    <div key={item.id || item._id || index} className="p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h4 className="text-sm font-bold text-white">{item.title}</h4>
                           <span className="text-[11px] font-mono text-zinc-500">Code: {item.code || "849201"}</span>
-                        </td>
+                        </div>
 
-                        {/* Deadline & Remaining Time */}
-                        <td className="px-5 py-3.5 text-zinc-300">
-                          <div className="flex items-center gap-1.5">
-                            <Clock className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
-                            <span className={item.remainingDays?.includes("Overdue") ? "text-red-400 font-bold" : "text-white"}>
-                              {item.remainingDays || "No deadline"}
-                            </span>
-                          </div>
-                        </td>
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono border shrink-0 ${
+                          item.status === "Uploaded"
+                            ? "bg-white text-black border-white"
+                            : item.status === "Graded"
+                            ? "bg-zinc-200 text-black border-zinc-300"
+                            : "bg-zinc-900 text-amber-400 border-amber-900/40"
+                        }`}>
+                          {item.status === "Uploaded" && <Check className="h-3 w-3 text-black" />}
+                          {item.status === "Graded" && <Sparkles className="h-3 w-3 text-black" />}
+                          {item.status === "Joined" && <span className="text-amber-400">●</span>}
+                          <span>{item.status || (item.hasSubmitted ? "Uploaded" : "Joined")}</span>
+                        </span>
+                      </div>
 
-                        {/* Status (Joined / Uploaded / Graded) */}
-                        <td className="px-5 py-3.5">
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold font-mono border ${
-                            item.status === "Uploaded"
-                              ? "bg-white text-black border-white"
-                              : item.status === "Graded"
-                              ? "bg-zinc-200 text-black border-zinc-300"
-                              : "bg-zinc-900 text-amber-400 border-amber-900/40"
-                          }`}>
-                            {item.status === "Uploaded" && <Check className="h-3 w-3 text-black" />}
-                            {item.status === "Graded" && <Sparkles className="h-3 w-3 text-black" />}
-                            {item.status === "Joined" && <span className="text-amber-400">●</span>}
-                            <span>{item.status || (item.hasSubmitted ? "Uploaded" : "Joined")}</span>
+                      <div className="flex items-center justify-between text-xs font-mono text-zinc-400">
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3.5 w-3.5 text-zinc-400" />
+                          <span className={item.remainingDays?.includes("Overdue") ? "text-red-400 font-bold" : "text-white"}>
+                            {item.remainingDays || "No deadline"}
                           </span>
-                        </td>
+                        </div>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold font-mono border ${
+                          item.remark === "Pass"
+                            ? "bg-white text-black border-white"
+                            : item.remark === "Fail"
+                            ? "bg-zinc-900 text-red-400 border-zinc-800"
+                            : item.remark === "Checked"
+                            ? "bg-zinc-800 text-zinc-200 border-zinc-700"
+                            : "bg-zinc-900 text-zinc-500 border-zinc-800"
+                        }`}>
+                          {item.remark || "Unchecked"}
+                        </span>
+                      </div>
 
-                        {/* Submitted File Details */}
-                        <td className="px-5 py-3.5 text-zinc-300">
-                          {item.fileName ? (
-                            <div className="flex items-center gap-1.5 text-white font-medium">
-                              <FileText className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
-                              <span className="truncate max-w-[140px]">{item.fileName}</span>
-                            </div>
-                          ) : (
-                            <span className="text-zinc-600 italic">Not uploaded</span>
-                          )}
-                        </td>
+                      {item.fileName && (
+                        <div className="flex items-center gap-1.5 text-xs text-zinc-300 font-mono bg-zinc-900/60 p-2 rounded-lg border border-zinc-800">
+                          <FileText className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                          <span className="truncate">{item.fileName}</span>
+                        </div>
+                      )}
 
-                        {/* Teacher Remark */}
-                        <td className="px-5 py-3.5">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold font-mono border ${
-                            item.remark === "Pass"
-                              ? "bg-white text-black border-white"
-                              : item.remark === "Fail"
-                              ? "bg-zinc-900 text-red-400 border-zinc-800"
-                              : item.remark === "Checked"
-                              ? "bg-zinc-800 text-zinc-200 border-zinc-700"
-                              : "bg-zinc-900 text-zinc-500 border-zinc-800"
-                          }`}>
-                            {item.remark || "Unchecked"}
-                          </span>
-                        </td>
+                      {/* Mobile Actions */}
+                      <div className="flex items-center gap-2 pt-1">
+                        {item.hasSubmitted || item.fileUrl ? (
+                          <>
+                            <a
+                              href={item.presignedUrl || item.viewUrl || item.fileUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex-1 inline-flex items-center justify-center gap-1 py-2 rounded-xl bg-white text-black font-bold text-xs hover:bg-zinc-200 transition-all"
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                              <span>View File</span>
+                            </a>
+                            <button
+                              onClick={() => handleDeleteSubmission(item.id)}
+                              disabled={deletingId === (item.submissionId || item.id)}
+                              className="p-2 rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-red-400 transition-all"
+                              title="Delete Submission"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => handleOpenUploadModal(item)}
+                            className="w-full py-2 rounded-xl bg-white text-black font-bold text-xs hover:bg-zinc-200 transition-all flex items-center justify-center gap-1.5"
+                          >
+                            <UploadCloud className="h-4 w-4" />
+                            <span>Upload File</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
-                        {/* Actions (View File / Upload File / Remove File) */}
-                        <td className="px-5 py-3.5 text-right">
-                          <div className="inline-flex items-center gap-2 justify-end">
-                            {item.hasSubmitted || item.fileUrl ? (
-                              <>
-                                {/* VIEW FILE BUTTON (Label: "View File") */}
-                                <a
-                                  href={item.presignedUrl || item.viewUrl || item.fileUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-zinc-700 bg-zinc-900 text-xs font-semibold text-white hover:bg-white hover:text-black transition-all active:scale-95"
-                                >
-                                  <Eye className="h-3.5 w-3.5" />
-                                  <span>View File</span>
-                                  <ExternalLink className="h-3 w-3" />
-                                </a>
-
-                                {/* REMOVE / DELETE SUBMISSION BUTTON */}
-                                <button
-                                  disabled={deletingId === item.id}
-                                  onClick={() => handleDeleteSubmission(item.id)}
-                                  title="Remove Uploaded File"
-                                  className="p-1.5 rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-red-600 hover:bg-red-950/40 hover:text-red-400 transition-all active:scale-95"
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </button>
-                              </>
-                            ) : (
-                              <button
-                                onClick={() => handleOpenUploadModal(item)}
-                                className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-lg bg-white text-black font-bold text-xs hover:bg-zinc-200 transition-all active:scale-95"
-                              >
-                                <UploadCloud className="h-3.5 w-3.5" />
-                                <span>Upload File</span>
-                              </button>
-                            )}
-                          </div>
-                        </td>
+                {/* TABLE VIEW (sm+ Screens) */}
+                <div className="hidden sm:block overflow-x-auto">
+                  <table className="w-full text-left text-xs font-mono">
+                    <thead className="bg-black text-zinc-400 uppercase border-b border-zinc-800 text-[11px]">
+                      <tr>
+                        <th scope="col" className="px-5 py-3 font-semibold">Assignment Name</th>
+                        <th scope="col" className="px-5 py-3 font-semibold">Deadline</th>
+                        <th scope="col" className="px-5 py-3 font-semibold">Status</th>
+                        <th scope="col" className="px-5 py-3 font-semibold">Submitted File</th>
+                        <th scope="col" className="px-5 py-3 font-semibold">Remark</th>
+                        <th scope="col" className="px-5 py-3 font-semibold text-right">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-800/60">
+                      {history.map((item, index) => (
+                        <tr key={item.id || item._id || index} className="hover:bg-zinc-900/40 transition-colors">
+                          
+                          {/* Assignment Name */}
+                          <td className="px-5 py-3.5 font-sans font-semibold text-white">
+                            <div className="text-xs">{item.title}</div>
+                            <span className="text-[11px] font-mono text-zinc-500">Code: {item.code || "849201"}</span>
+                          </td>
+
+                          {/* Deadline & Remaining Time */}
+                          <td className="px-5 py-3.5 text-zinc-300">
+                            <div className="flex items-center gap-1.5">
+                              <Clock className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                              <span className={item.remainingDays?.includes("Overdue") ? "text-red-400 font-bold" : "text-white"}>
+                                {item.remainingDays || "No deadline"}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Status (Joined / Uploaded / Graded) */}
+                          <td className="px-5 py-3.5">
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold font-mono border ${
+                              item.status === "Uploaded"
+                                ? "bg-white text-black border-white"
+                                : item.status === "Graded"
+                                ? "bg-zinc-200 text-black border-zinc-300"
+                                : "bg-zinc-900 text-amber-400 border-amber-900/40"
+                            }`}>
+                              {item.status === "Uploaded" && <Check className="h-3 w-3 text-black" />}
+                              {item.status === "Graded" && <Sparkles className="h-3 w-3 text-black" />}
+                              {item.status === "Joined" && <span className="text-amber-400">●</span>}
+                              <span>{item.status || (item.hasSubmitted ? "Uploaded" : "Joined")}</span>
+                            </span>
+                          </td>
+
+                          {/* Submitted File Details */}
+                          <td className="px-5 py-3.5 text-zinc-300">
+                            {item.fileName ? (
+                              <div className="flex items-center gap-1.5 text-white font-medium">
+                                <FileText className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                                <span className="truncate max-w-[140px]">{item.fileName}</span>
+                              </div>
+                            ) : (
+                              <span className="text-zinc-600 italic">Not uploaded</span>
+                            )}
+                          </td>
+
+                          {/* Teacher Remark */}
+                          <td className="px-5 py-3.5">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold font-mono border ${
+                              item.remark === "Pass"
+                                ? "bg-white text-black border-white"
+                                : item.remark === "Fail"
+                                ? "bg-zinc-900 text-red-400 border-zinc-800"
+                                : item.remark === "Checked"
+                                ? "bg-zinc-800 text-zinc-200 border-zinc-700"
+                                : "bg-zinc-900 text-zinc-500 border-zinc-800"
+                            }`}>
+                              {item.remark || "Unchecked"}
+                            </span>
+                          </td>
+
+                          {/* Actions (View File / Upload File / Remove File) */}
+                          <td className="px-5 py-3.5 text-right">
+                            <div className="inline-flex items-center gap-2 justify-end">
+                              {item.hasSubmitted || item.fileUrl ? (
+                                <>
+                                  <a
+                                    href={item.presignedUrl || item.viewUrl || item.fileUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white text-black font-bold text-xs hover:bg-zinc-200 transition-all active:scale-95 shadow-sm"
+                                  >
+                                    <Eye className="h-3.5 w-3.5" />
+                                    <span>View File</span>
+                                  </a>
+                                  <button
+                                    onClick={() => handleDeleteSubmission(item.id)}
+                                    disabled={deletingId === (item.submissionId || item.id)}
+                                    className="p-1.5 rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-red-400 hover:border-zinc-700 transition-all"
+                                    title="Delete Submission"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </>
+                              ) : (
+                                <button
+                                  onClick={() => handleOpenUploadModal(item)}
+                                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white text-black font-bold text-xs hover:bg-zinc-200 transition-all active:scale-95 shadow-sm"
+                                >
+                                  <UploadCloud className="h-3.5 w-3.5" />
+                                  <span>Upload File</span>
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             ) : (
               <div className="p-8 text-center text-zinc-500 font-mono text-xs space-y-1">
                 <FileCheck className="h-6 w-6 text-zinc-600 mx-auto mb-1" />

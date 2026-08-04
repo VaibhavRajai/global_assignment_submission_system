@@ -146,4 +146,28 @@ const logout = async (req, res) => {
     }
 };
 
-module.exports = { signup, verifyOTP, login, refreshToken, logout };
+const forgotPassword = async (req, res) => {
+    try {
+        const response = await authServices.forgotPassword(req.body);
+        return res.status(200).json(response);
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: error.message || 'Failed to process forgot password request'
+        });
+    }
+};
+
+const resetPassword = async (req, res) => {
+    try {
+        const response = await authServices.resetPassword(req.body);
+        return res.status(200).json(response);
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: error.message || 'Failed to reset password'
+        });
+    }
+};
+
+module.exports = { signup, verifyOTP, login, refreshToken, logout, forgotPassword, resetPassword };

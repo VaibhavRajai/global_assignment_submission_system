@@ -45,15 +45,22 @@ const extractTextFromBuffer = async (fileBuffer, type) => {
     if (type === 'document') {
         try {
             const pdfData = await pdfParse(fileBuffer);
-            return pdfData.text ? pdfData.text.trim() : '';
-        } catch (pdfErr) {
-            // Fallback for text files or unparseable documents
-            try {
-                return fileBuffer.toString('utf-8').trim();
-            } catch (err) {
-                return '';
+            if (pdfData && pdfData.text && pdfData.text.trim()) {
+                return pdfData.text.trim();
             }
+        } catch (pdfErr) {
+            console.error('PDF Parse Error:', pdfErr.message);
         }
+
+        // Fallback for text files or plain text within buffer
+        try {
+            const raw = fileBuffer.toString('utf-8');
+            // Extract clean printable ASCII/UTF-8 strings
+            const printable = raw.replace(/[^\x20-\x7E\n\r\t]/g, ' ').replace(/\s+/g, ' ').trim();
+            if (printable.length > 20) return printable;
+        } catch (err) {}
+
+        return '';
     } else if (type === 'image') {
         try {
             const { data: { text } } = await Tesseract.recognize(fileBuffer, 'eng', {

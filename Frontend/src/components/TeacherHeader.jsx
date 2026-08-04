@@ -27,20 +27,21 @@ export default function TeacherHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-zinc-800/80 bg-black/80 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
         {/* Brand Logo */}
         <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="h-9 w-9 rounded-xl bg-white text-black flex items-center justify-center font-extrabold shadow-lg transition-transform group-hover:scale-105">
-              <ShieldCheck className="h-5 w-5 stroke-[2.5]" />
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
+            <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-white text-black flex items-center justify-center font-extrabold shadow-lg transition-transform group-hover:scale-105">
+              <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5 stroke-[2.5]" />
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-extrabold tracking-tight text-white flex items-center gap-2">
-                GlobalAssign <span className="text-[10px] font-mono uppercase bg-zinc-900 border border-zinc-700 text-zinc-300 px-2.5 py-0.5 rounded-full">Educator Portal</span>
+              <span className="text-base sm:text-lg font-extrabold tracking-tight text-white flex items-center gap-1.5 sm:gap-2">
+                GlobalAssign <span className="hidden sm:inline-block text-[10px] font-mono uppercase bg-zinc-900 border border-zinc-700 text-zinc-300 px-2 py-0.5 rounded-full">Educator Portal</span>
               </span>
             </div>
           </Link>
         </div>
+
 
         {/* User Account Info & Actions */}
         <div className="flex items-center gap-4">

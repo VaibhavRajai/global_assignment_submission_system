@@ -123,68 +123,110 @@ export default function TeacherHomePage() {
               Loading assignments...
             </div>
           ) : filteredAssignments.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs font-mono">
-                <thead className="bg-black text-zinc-400 uppercase border-b border-zinc-800 text-[11px]">
-                  <tr>
-                    <th scope="col" className="px-5 py-3.5 font-semibold">Assignment Title & Description</th>
-                    <th scope="col" className="px-5 py-3.5 font-semibold">Class Code</th>
-                    <th scope="col" className="px-5 py-3.5 font-semibold">Due Date</th>
-                    <th scope="col" className="px-5 py-3.5 font-semibold">Submissions</th>
-                    <th scope="col" className="px-5 py-3.5 font-semibold text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-800/60">
-                  {filteredAssignments.map((item) => (
-                    <tr key={item.id || item._id} className="hover:bg-zinc-900/40 transition-colors">
-                      
-                      {/* Title & Description */}
-                      <td className="px-5 py-3.5 font-sans font-semibold text-white">
-                        <div className="text-xs font-bold text-white">{item.title}</div>
-                        <p className="text-[11px] font-normal text-zinc-400 truncate max-w-sm mt-0.5">
+            <>
+              {/* MOBILE CARDS VIEW (< 640px) */}
+              <div className="block sm:hidden divide-y divide-zinc-800">
+                {filteredAssignments.map((item) => (
+                  <div key={item.id || item._id} className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="text-sm font-bold text-white">{item.title}</h4>
+                        <p className="text-xs text-zinc-400 mt-1 line-clamp-2">
                           {item.description || "No description provided"}
                         </p>
-                      </td>
+                      </div>
+                      <span className="inline-block rounded-lg bg-zinc-900 border border-zinc-700 px-2 py-0.5 text-xs font-mono font-bold text-white tracking-widest shrink-0">
+                        {item.code || item.assignmentCode}
+                      </span>
+                    </div>
 
-                      {/* 6-Digit Class Code */}
-                      <td className="px-5 py-3.5">
-                        <span className="inline-block rounded-lg bg-zinc-900 border border-zinc-700 px-2.5 py-1 text-xs font-mono font-bold text-white tracking-widest">
-                          {item.code || item.assignmentCode}
-                        </span>
-                      </td>
+                    <div className="flex items-center justify-between text-xs font-mono text-zinc-400 pt-1">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3.5 w-3.5 text-zinc-400" />
+                        <span>{item.dueDate ? new Date(item.dueDate).toLocaleDateString() : "No deadline"}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Users className="h-3.5 w-3.5 text-zinc-400" />
+                        <span>{item.submissionsCount || item.submissions || 0} turn-ins</span>
+                      </div>
+                    </div>
 
-                      {/* Due Date */}
-                      <td className="px-5 py-3.5 text-zinc-300">
-                        <div className="flex items-center gap-1.5 text-xs">
-                          <Calendar className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
-                          <span>{item.dueDate ? new Date(item.dueDate).toLocaleDateString() : "No deadline"}</span>
-                        </div>
-                      </td>
+                    <button
+                      onClick={() => router.push(`/submission/${item.id || item._id}`)}
+                      className="w-full py-2 rounded-xl bg-white text-black font-bold text-xs hover:bg-zinc-200 transition-all flex items-center justify-center gap-1.5"
+                    >
+                      <Eye className="h-3.5 w-3.5" />
+                      <span>View Submissions</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
 
-                      {/* Submission Counts */}
-                      <td className="px-5 py-3.5 text-zinc-300">
-                        <div className="flex items-center gap-1.5">
-                          <Users className="h-3.5 w-3.5 text-zinc-400" />
-                          <span>{item.submissionsCount || item.submissions || 0} turn-ins</span>
-                        </div>
-                      </td>
-
-                      {/* Action: Redirect to View Page */}
-                      <td className="px-5 py-3.5 text-right">
-                        <button
-                          onClick={() => router.push(`/submission/${item.id || item._id}`)}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white text-black font-bold text-xs hover:bg-zinc-200 transition-all active:scale-95"
-                        >
-                          <Eye className="h-3.5 w-3.5" />
-                          <span>View Submissions</span>
-                        </button>
-                      </td>
+              {/* TABLE VIEW (sm+ Screens) */}
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full text-left text-xs font-mono">
+                  <thead className="bg-black text-zinc-400 uppercase border-b border-zinc-800 text-[11px]">
+                    <tr>
+                      <th scope="col" className="px-5 py-3.5 font-semibold">Assignment Title & Description</th>
+                      <th scope="col" className="px-5 py-3.5 font-semibold">Class Code</th>
+                      <th scope="col" className="px-5 py-3.5 font-semibold">Due Date</th>
+                      <th scope="col" className="px-5 py-3.5 font-semibold">Submissions</th>
+                      <th scope="col" className="px-5 py-3.5 font-semibold text-right">Action</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-800/60">
+                    {filteredAssignments.map((item) => (
+                      <tr key={item.id || item._id} className="hover:bg-zinc-900/40 transition-colors">
+                        
+                        {/* Title & Description */}
+                        <td className="px-5 py-3.5 font-sans font-semibold text-white">
+                          <div className="text-xs font-bold text-white">{item.title}</div>
+                          <p className="text-[11px] font-normal text-zinc-400 truncate max-w-sm mt-0.5">
+                            {item.description || "No description provided"}
+                          </p>
+                        </td>
+
+                        {/* 6-Digit Class Code */}
+                        <td className="px-5 py-3.5">
+                          <span className="inline-block rounded-lg bg-zinc-900 border border-zinc-700 px-2.5 py-1 text-xs font-mono font-bold text-white tracking-widest">
+                            {item.code || item.assignmentCode}
+                          </span>
+                        </td>
+
+                        {/* Due Date */}
+                        <td className="px-5 py-3.5 text-zinc-300">
+                          <div className="flex items-center gap-1.5 text-xs">
+                            <Calendar className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                            <span>{item.dueDate ? new Date(item.dueDate).toLocaleDateString() : "No deadline"}</span>
+                          </div>
+                        </td>
+
+                        {/* Submission Counts */}
+                        <td className="px-5 py-3.5 text-zinc-300">
+                          <div className="flex items-center gap-1.5">
+                            <Users className="h-3.5 w-3.5 text-zinc-400" />
+                            <span>{item.submissionsCount || item.submissions || 0} turn-ins</span>
+                          </div>
+                        </td>
+
+                        {/* Action: Redirect to View Page */}
+                        <td className="px-5 py-3.5 text-right">
+                          <button
+                            onClick={() => router.push(`/submission/${item.id || item._id}`)}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white text-black font-bold text-xs hover:bg-zinc-200 transition-all active:scale-95"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                            <span>View Submissions</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           ) : (
+
             <div className="p-10 text-center text-zinc-500 font-mono text-xs space-y-2">
               <BookOpen className="h-6 w-6 text-zinc-600 mx-auto" />
               <p className="text-white font-bold text-xs">No assignments found</p>

@@ -93,4 +93,43 @@ const refreshAuthToken = async (refreshToken) => {
     return { user, ...tokens };
 };
 
-module.exports = { signup, verifyOTP, login, refreshAuthToken };
+const forgotPassword = async ({ email }) => {
+    const cleanEmail = email ? email.toLowerCase().trim() : "";
+    const user = await userRepostiry.findByEmail(cleanEmail);
+    if (!user) {
+        throw new Error("No account found with this email address");
+    }
+    const otp = generateOTP();
+    await otpService.saveResetOTP(cleanEmail, { email: cleanEmail, otp });
+    await emailService.sendResetOTP(cleanEmail, otp);
+    return {
+        success: true,
+        message: "Password reset OTP sent to your email address."
+    };
+};
+
+const resetPassword = async ({ email, otp, newPassword }) => {
+    const cleanEmail = email ? email.toLowerCase().trim() : "";
+    const resetData = await otpService.getResetOTP(cleanEmail);
+    if (!resetData) {
+        throw new Error("OTP expired or invalid. Please request a new code.");
+    }
+    if (String(resetData.otp) !== String(otp).trim()) {
+        throw new Error("Invalid OTP code. Please verify the code sent to your email.");
+    }
+    const user = await userRepostiry.findByEmailWithPassword(cleanEmail);
+    if (!user) {
+        throw new Error("User not found");
+    }
+    const hashedPassword = await hashPassword(newPassword);
+    user.password = hashedPassword;
+    await user.save();
+    await otpService.deleteResetOTP(cleanEmail);
+
+    return {
+        success: true,
+        message: "Password reset successfully! You can now log in with your new password."
+    };
+};
+
+module.exports = { signup, verifyOTP, login, refreshAuthToken, forgotPassword, resetPassword };
